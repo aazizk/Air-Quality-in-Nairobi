@@ -18,7 +18,7 @@ def wrangle(collection):
     )
 
     df = pd.DataFrame(results).set_index("timestamp")
-    
+    df.index = df.index.tz_localize("UTC").tz_convert("Africa/Nairobi")
     return df
     
 df = wrangle(nairobi)
