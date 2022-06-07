@@ -47,3 +47,11 @@ result = nairobi.aggregate( #grouping metadata.mesurement counts together where 
 )
 pp.pprint(list(result))
 
+result = nairobi.find( # getting final result in required format
+    {"metadata.site": 29, "metadata.measurement": "P2"},
+    projection = {"P2":1, "timestamp": 1, "_id": 0}
+)
+#pp.pprint(result.next())
+
+df = pd.DataFrame(result).set_index("timestamp")
+df.head()
