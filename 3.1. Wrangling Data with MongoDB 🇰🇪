@@ -27,3 +27,22 @@ nairobi.distinct("metadata.site") # distint sites in the db
 print("Documents from site 6:", nairobi.count_documents({"metadata.site": 6}))
 print("Documents from site 29:", nairobi.count_documents({"metadata.site": 29}))
 
+result = nairobi.aggregate( #grouping metadata.site counts together
+    [
+        {"$group": {"_id": "$metadata.site", "count": {"$count": {}}}}
+    ]
+)
+pp.pprint(list(result))
+
+nairobi.distinct("metadata.measurement") # distint measurements in the db
+
+result = nairobi.find({"metadata.measurement": "P2"}).limit(3)
+pp.pprint(list(result))
+
+result = result = nairobi.aggregate( #grouping metadata.mesurement counts together
+    [
+        {"$group": {"_id": "$metadata.measurement", "count": {"$count": {}}}}
+    ]
+)
+pp.pprint(list(result))
+
