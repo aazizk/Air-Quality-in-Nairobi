@@ -39,8 +39,9 @@ nairobi.distinct("metadata.measurement") # distint measurements in the db
 result = nairobi.find({"metadata.measurement": "P2"}).limit(3)
 pp.pprint(list(result))
 
-result = result = nairobi.aggregate( #grouping metadata.mesurement counts together
+result = nairobi.aggregate( #grouping metadata.mesurement counts together where metadata.site = 6
     [
+        {"$match": {"metadata.site": 6}},
         {"$group": {"_id": "$metadata.measurement", "count": {"$count": {}}}}
     ]
 )
