@@ -4,11 +4,26 @@ import pandas as pd
 from IPython.display import VimeoVideo
 from pymongo import MongoClient
 
-pp = PrettyPrinter(indent = 2)
+pp = PrettyPrinter(indent = 2) #intialize pretty print
 
-client = MongoClient(host="localhost", port=27017)
+client = MongoClient(host="localhost", port=27017) # connect to MongodB
 
-pp.pprint(list(client.list_databases()))
+pp.pprint(list(client.list_databases())) # list of databases on MongodB server
 
-db = client["air-quality"]
+db = client["air-quality"] #connecting to a dB , air quality
+
+for c in db.list_collections(): #collections/tables in a dB
+    print(c["name"])
+
+nairobi = db["nairobi"] #connecting to a collection in a db
+
+nairobi.count_documents({}) #documents/records in a collection
+
+result = nairobi.find_one({}) # getting the first record
+pp.pprint(result)
+
+nairobi.distinct("metadata.site") # distint sites in the db
+
+print("Documents from site 6:", nairobi.count_documents({"metadata.site": 6}))
+print("Documents from site 29:", nairobi.count_documents({"metadata.site": 29}))
 
