@@ -54,3 +54,30 @@ target = "P2"
 y = df[target]
 X = df.drop(columns = target)
 
+y_pred_baseline = [y_train.mean()] * len(y_train)
+mae_baseline = mean_absolute_error(y_train, y_pred_baseline)
+print("Mean P2 Reading:", round(y_train.mean(), 2))
+print("Baseline MAE:", round(mae_baseline, 2))
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+training_mae = mean_absolute_error(y_train, model.predict(X_train))
+test_mae = mean_absolute_error(y_test, model.predict(X_test))
+print("Training MAE:", round(training_mae, 2))
+print("Test MAE:", round(test_mae, 2))
+
+intercept = model.intercept_.round(2)
+coefficient = model.coef_.round(2)
+print(f"P2 = {intercept} + ({coefficient} * P2.L1)")
+
+df_pred_test = pd.DataFrame(
+    {
+        "y_test": y_test,
+        "y-pred": model.predict(X_test)
+    }
+)
+df_pred_test.head()
+
+fig = px.line(df_pred_test, labels = {"values":"P2"})
+fig.show()
