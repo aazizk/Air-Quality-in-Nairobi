@@ -21,6 +21,8 @@ def wrangle(collection):
     df.index = df.index.tz_localize("UTC").tz_convert("Africa/Nairobi") 
     df = df[df["P2"] < 500] #remove outliers
     df= df["P2"].resample("1H").mean().fillna(method = "ffill").to_frame() #remove NaN by forward filling
+        df["P2L1"] = df["P2"].shift(1) #Add a lag column
+    df.dropna(inplace = True) #drop NaN
     return df
     
 df = wrangle(nairobi)
@@ -31,4 +33,20 @@ df["P2"].plot(kind = "box", vert = False, title = "Distribution of PM2.5 reading
 
 fig, ax = plt.subplots(figsize=(15, 6))
 df["P2"].plot(ax=ax);
+
+fig, ax = plt.subplots(figsize=(15, 6))
+df["P2"].rolling(168).mean().plot(ax=ax, ylabel ="PM2.5", title="Weekly Rolling Average");
+
+df.corr()
+
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.scatter(x=df["P2L1"], y=df["P2"])
+ax.plot([0,120], [0,120], linestyle = "--", color = "orange")
+plt.xlabel("P2L1")
+plt.ylabel("P2")
+plt.title("PM2.5")
+
+target = "P2"
+y = df[target]
+X = df.drop(columns = target)
 
