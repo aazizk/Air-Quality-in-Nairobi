@@ -17,9 +17,18 @@ def wrangle(collection):
         projection={"P2": 1, "timestamp": 1, "_id": 0},
     )
 
-    df = pd.DataFrame(results).set_index("timestamp")
-    df.index = df.index.tz_localize("UTC").tz_convert("Africa/Nairobi")
+    df = pd.DataFrame(results).set_index("timestamp") #localize time zone
+    df.index = df.index.tz_localize("UTC").tz_convert("Africa/Nairobi") 
+    df = df[df["P2"] < 500] #remove outliers
+    df= df["P2"].resample("1H").mean().fillna(method = "ffill").to_frame() #remove NaN by forward filling
     return df
     
 df = wrangle(nairobi)
 df.head()
+
+fig, ax = plt.subplots(figsize=(15, 6))
+df["P2"].plot(kind = "box", vert = False, title = "Distribution of PM2.5 readings", ax=ax);
+
+fig, ax = plt.subplots(figsize=(15, 6))
+df["P2"].plot(ax=ax);
+
