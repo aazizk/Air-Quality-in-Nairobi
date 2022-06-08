@@ -34,6 +34,10 @@ df["P2"].plot(kind = "box", vert = False, title = "Distribution of PM2.5 reading
 fig, ax = plt.subplots(figsize=(15, 6))
 df["P2"].plot(ax=ax);
 
+cutoff = int(len(X) * 0.8) #splitting data
+X_train, y_train = X.iloc[:cutoff], y.iloc[:cutoff]
+X_test, y_test = X.iloc[cutoff:], y.iloc[cutoff:]
+
 fig, ax = plt.subplots(figsize=(15, 6))
 df["P2"].rolling(168).mean().plot(ax=ax, ylabel ="PM2.5", title="Weekly Rolling Average");
 
