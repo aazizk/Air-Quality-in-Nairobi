@@ -91,3 +91,25 @@ for p in p_params:
 print()
 print(mae_grid)
 
+mae_df = pd.DataFrame(mae_grid)
+mae_df.round(4)
+
+sns.heatmap(mae_df, cmap = "Blues") #heatmap of p and q values
+plt.xlabel("p values")
+plt.ylabel("q values")
+plt.title("ARMA Grid Search (Criterion: MAE)");
+
+fig, ax = plt.subplots(figsize=(15, 12)) 
+model.plot_diagnostics(fig=fig); #plots of output, standardized residual, correlleogram, etc
+
+y_pred_wfv = pd.Series()
+history = y_train.copy()
+for i in range(len(y_test)):
+    model = ARIMA(history, order=(8,0,1)).fit() # fitting the best performing model, high mae and low time to run
+    next_pred = model.forecast()
+    y_pred_wfv = y_pred_wfv.append(next_pred)
+    history = history.append(y_test[next_pred.index])
+ 
+test_mae = mean_absolute_error(y_train, y_pred_wfv)
+print("Test MAE (walk forward validation):", round(test_mae, 2))
+
