@@ -1,0 +1,50 @@
+import inspect
+import time
+import warnings
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+import seaborn as sns
+from IPython.display import VimeoVideo
+from pymongo import MongoClient
+from sklearn.metrics import mean_absolute_error
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.arima.model import ARIMA
+
+warnings.filterwarnings("ignore")
+
+client = MongoClient(host="localhost", port=27017)
+db = client["air-quality"]
+nairobi = db["nairobi"]
+
+def wrangle(collection, resample_rule="1H"):
+
+    results = collection.find(
+        {"metadata.site": 29, "metadata.measurement": "P2"},
+        projection={"P2": 1, "timestamp": 1, "_id": 0},
+    )
+
+    # Read results into DataFrame
+    df = pd.DataFrame(list(results)).set_index("timestamp")
+
+    # Localize timezone
+    df.index = df.index.tz_localize("UTC").tz_convert("Africa/Nairobi")
+
+    # Remove outliers
+    df = df[df["P2"] < 500]
+
+    # Resample and forward-fill
+    y = df["P2"].resample(resample_rule).mean().fillna(method='ffill')
+
+    return y
+
+y = wrangle(nairobi, resample_rule="1D")
+y.head()
+
+fig, ax=plt.subplots(figsize=(15,6))
+plot_acf(y, ax=ax)
+plt.xlabel("Lag [hours]")
+plt.ylabel("Correlation Coefficient");
+
+
