@@ -38,3 +38,75 @@ def wrangle(collection):
 y = wrangle(nairobi)
 y.head()
 
+fig, ax = plt.subplots(figsize=(15, 6)) #ACF (Auto Correlation Factor plot)
+plot_acf(y, ax=ax)
+plt.xlabel("Lag [hours]")
+plt.ylabel("Correlation Coefficient");
+
+fig, ax = plt.subplots(figsize=(15, 6))#PACF (Partial Auto Correlation Factor plot)
+plot_pacf(y, ax=ax)
+plt.xlabel("Lag [hours]")
+plt.ylabel("Correlation Coefficient");
+
+cutoff_test = int(len(y) * 0.95) #Splitting the data
+y_train = y.iloc[:cutoff_test]
+y_test = y.iloc[cutoff_test:]
+
+y_train_mean = y_train.mean()
+y_pred_baseline = [y_train_mean] * len(y_train)
+mae_baseline = mean_absolute_error(y_train, y_pred_baseline)
+
+print("Mean P2 Reading:", round(y_train_mean, 2))
+print("Baseline MAE:", round(mae_baseline, 2))
+
+model = AutoReg(y_train, lags=26).fit() #Model initialization and training in one row
+
+y_pred = model.predict().dropna()
+training_mae = mean_absolute_error(y_train.iloc[26:], y_pred)
+print("Training MAE:", training_mae)
+
+y_train_resid = model.resid #getting the residuals
+y_train_resid.tail()
+
+fig, ax = plt.subplots(figsize=(15, 6)) 
+y_train_resid.plot(ylabel="Residual Value", ax=ax); #time series plot of residuals
+
+y_train_resid.hist() #histogram of residuals
+plt.xlabel("Residual Values")
+plt.ylabel("Frequency")
+plt.title("AR(26), Distribution of Residuals");
+
+fig, ax = plt.subplots(figsize=(15, 6))
+plot_acf(y_train_resid, ax=ax)
+
+y_pred_test = model.predict(y_test.index.min(), y_test.index.max()) #Model evaluation for 1st and last observation
+test_mae = mean_absolute_error(y_test, y_pred_test)
+print("Test MAE:", test_mae)
+
+df_pred_test = pd.DataFrame(
+    {"y_test": y_test, "y_pred": y_pred_test}, index=y_test.index
+)
+
+fig = px.line(df_pred_test, labels={"value": "P2"})
+fig.show()
+
+%%capture
+
+y_pred_wfv = pd.Series()
+history = y_train.copy()
+for i in range(len(y_test)):
+    model =AutoReg(history, lags=26).fit()
+    next_pred = model.forecast()
+    y_pred_wfv = y_pred_wfv.append(next_pred)
+    history = history.append(y_test[next_pred.index])
+
+test_mae = mean_absolute_error(y_test, y_pred_wfv)
+print("Test MAE (walk forward validation):", round(test_mae, 2))
+
+print(model.params) # AR model coefficients
+
+df_pred_test = pd.DataFrame( # preparing the df for plot
+    {"y_test": y_test, "y_pred": y_pred_wfv}, index=y_test.index
+)
+fig = px.line(df_pred_test, labels={"value": "P2"}) #plotting the results
+fig.show()
