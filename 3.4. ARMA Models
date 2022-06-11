@@ -52,3 +52,42 @@ plot_pacf(y, ax=ax)
 plt.xlabel("Lag [hours]")
 plt.ylabel("Correlation Coefficient");
 
+y_train = y.loc["2018-10-01":"2018-10-31"] #slicing on date index
+y_test = y.loc["2018-11-01"]
+
+y_train_mean = y_train.mean()
+y_pred_baseline = [y_train_mean] * len(y_train)
+mae_baseline = mean_absolute_error(y_train, y_pred_baseline)
+print("Mean P2 Reading:", round(y_train_mean, 2))
+print("Baseline MAE:", round(mae_baseline, 2))
+
+p_params = range(0,25,8)
+q_params = range(0,3,1)
+
+# Create dictionary to store MAEs
+mae_grid = dict()
+# Outer loop: Iterate through possible values for `p`
+for p in p_params:
+    # Create key-value pair in dict. Key is `p`, value is empty list.
+    mae_grid[p] = list()
+    # Inner loop: Iterate through possible values for `q`
+    for q in q_params:
+        # Combination of hyperparameters for model
+        order = (p, 0, q)
+        # Note start time
+        start_time = time.time()
+        # Train model
+        model = ARIMA(y_train, order = order).fit()
+        # Calculate model training time
+        elapsed_time = round(time.time() - start_time, 2)
+        print(f"Trained ARIMA {order} in {elapsed_time} seconds.")
+        # Generate in-sample (training) predictions
+        y_pred = model.predict()
+        # Calculate training MAE
+        mae = mean_absolute_error(y_train, y_pred)
+        # Append MAE to list in dictionary
+        mae_grid[p].append(mae)
+
+print()
+print(mae_grid)
+
