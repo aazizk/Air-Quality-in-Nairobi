@@ -106,7 +106,7 @@ print("Test MAE (walk forward validation):", round(test_mae, 2))
 print(model.params) # AR model coefficients
 
 df_pred_test = pd.DataFrame( # preparing the df for plot
-    {"y_test": y_test, "y_pred": y_pred_wfv}, index=y_test.index
+    {"y_test": y_test, "y_pred_wfv": y_pred_wfv}, index=y_test.index
 )
-fig = px.line(df_pred_test, labels={"value": "P2"}) #plotting the results
+fig = px.line(df_pred_test, labels={"value": "PM2.5"}) #plotting the results
 fig.show()
