@@ -113,3 +113,8 @@ for i in range(len(y_test)):
 test_mae = mean_absolute_error(y_train, y_pred_wfv)
 print("Test MAE (walk forward validation):", round(test_mae, 2))
 
+df_predictions = pd.DataFrame(
+    {"y_test": y_test, "y_pred_wfv": y_pred_wfv}, index=y_test.index
+)
+fig = px.line(df_pred_test, labels={"value": "PM2.5"})
+fig.show()
