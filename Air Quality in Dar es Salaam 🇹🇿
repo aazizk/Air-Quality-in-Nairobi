@@ -1,0 +1,6 @@
+
+
+client = MongoClient(host="localhost", port = 27071)
+db = client["air-quality"]
+dar = db["dar"]
+
