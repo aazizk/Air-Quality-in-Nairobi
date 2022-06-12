@@ -1,6 +1,65 @@
-
+# Import libraries here
+from pymongo import MongoClient
+import pandas as pd
+from pprint import PrettyPrinter
+import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 client = MongoClient(host="localhost", port = 27071)
 db = client["air-quality"]
 dar = db["dar"]
+
+# Import libraries here
+from pymongo import MongoClienta
+import pandas as pd
+
+client = MongoClient(host="localhost", port = 27017) #intialize client
+db = client["air-quality"]
+dar = db["dar-es-salaam"]
+
+result = dar.aggregate( #grouping metadata.site counts together
+    [
+        {"$group": {"_id": "$metadata.site", "count": {"$count": {}}}}
+    ]
+)
+
+readings_per_site = list(result)
+readings_per_site
+
+def wrangle(collection):
+    results = collection.find(
+        {"metadata.site": 11, "metadata.measurement": "P2"},
+        projection={"P2": 1, "timestamp": 1, "_id": 0},
+    )
+
+    y = pd.DataFrame(results).set_index("timestamp") #localize time zone
+    y.index = y.index.tz_localize("UTC").tz_convert("Africa/Dar_es_Salaam") 
+    y = y[y["P2"] < 100] #remove outliers
+    y= y["P2"].resample("1H").mean().fillna(method = "ffill") #remove NaN by forward filling
+#    y["P2L1"] = y["P2"].shift(1) #Add a lag column
+    y.dropna(inplace = True) #drop NaN
+    return y
+
+y = wrangle(dar)
+y.head()
+
+
+fig, ax = plt.subplots(figsize=(15, 6))
+y.plot(ax=ax)
+plt.xlabel("Date")
+plt.ylabel("PM2.5 Level")
+plt.title("Dar es Salaam PM2.5 Levels")
+# Don't delete the code below 👇
+plt.savefig("images/3-5-5.png", dpi=150)
+
+fig, ax = plt.subplots(figsize=(15, 6))
+y.rolling(168).mean().plot(ax=ax, xlabel = "Date", ylabel ="PM2.5 level", title="Dar es Salaam PM2.5 Levels, 7-Day Rolling Average");
+# Don't delete the code below 👇
+plt.savefig("images/3-5-6.png", dpi=150)
+
+fig, ax = plt.subplots(figsize=(15, 6))
+plot_acf(y, ax=ax)
+# Don't delete the code below 👇
+plt.savefig("images/3-5-7.png", dpi=150)
+
 
